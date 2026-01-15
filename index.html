@@ -518,13 +518,19 @@
 
             ctx.textAlign = "center";
             ctx.fillStyle = "rgba(255,255,255,0.92)";
-            ctx.font = "800 26px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-            ctx.fillText("Itzpapalotl", LOGICAL_W / 2, 220);
+            // Title (split to fit nicely on small screens)
+            ctx.font = "800 22px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+            ctx.fillText("Itzpapalotl", LOGICAL_W / 2, 210);
+            // Subtitle in a slightly different accent color
+            ctx.fillStyle = "rgba(181,156,255,0.92)";
+            ctx.font = "700 16px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+            ctx.fillText("obsidian aztec butterfly", LOGICAL_W / 2, 236);
 
             ctx.fillStyle = "rgba(255,255,255,0.70)";
             ctx.font = "500 14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-            ctx.fillText("Press Space / click / tap to flap", LOGICAL_W / 2, 252);
-            ctx.fillText("Avoid the pipes. Score by passing them.", LOGICAL_W / 2, 274);
+            // Extra space after subtitle before controls
+            ctx.fillText("Press Space / click / tap to flap", LOGICAL_W / 2, 286);
+            ctx.fillText("Avoid the pipes. Score by passing them.", LOGICAL_W / 2, 308);
             ctx.restore();
           }
         }

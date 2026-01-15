@@ -193,6 +193,7 @@
           rot: 0,
           alive: true,
           inv: 0, // brief invulnerability after restart to avoid instant ground collision
+          squashT: 1, // 1 = no squash; animation time accumulator
         };
 
         const pipes = [];
@@ -253,6 +254,7 @@
             announcer.textContent = "Go!";
           }
           bird.vy = state.flapVel;
+          bird.squashT = 0;
         }
 
         function setBestIfNeeded() {
@@ -292,6 +294,7 @@
           }
 
           bird.inv = Math.max(0, bird.inv - dt);
+          bird.squashT = Math.min(1, bird.squashT + dt);
           bird.vy += state.gravity * dt;
           bird.y += bird.vy * dt;
 
@@ -437,6 +440,23 @@
           ctx.translate(cx, cy);
           ctx.rotate(bird.rot);
 
+          // Visual-only squash on flap (hitbox does NOT change).
+          // Piecewise: 0..downDur -> 1 => 0.5, then 0.5 => 1.
+          const downDur = 0.06;
+          const upDur = 0.12;
+          const total = downDur + upDur;
+          const t = clamp(bird.squashT, 0, total);
+          const smooth01 = (u) => u * u * (3 - 2 * u);
+          let sx = 1;
+          if (t < downDur) {
+            const u = smooth01(t / downDur);
+            sx = 1 + (0.5 - 1) * u;
+          } else if (t < total) {
+            const u = smooth01((t - downDur) / upDur);
+            sx = 0.5 + (1 - 0.5) * u;
+          }
+          ctx.scale(sx, 1);
+
           // Glow
           ctx.globalAlpha = 0.22;
           ctx.fillStyle = "rgba(181,156,255,1)";
@@ -526,17 +546,21 @@
           requestAnimationFrame(frame);
         }
 
-        // Input (bind to both canvas and window for robustness across browsers + file://)
+        // Input (debounced to avoid double-trigger from pointer/click/touch synthesis)
+        let lastFlapIntentAt = 0;
         function onFlapIntent(e) {
           // Keep the canvas focused so Space works even after clicks.
           canvas.focus({ preventScroll: true });
           if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+          const now = performance.now();
+          if (now - lastFlapIntentAt < 120) return;
+          lastFlapIntentAt = now;
+
           flap();
         }
 
         canvas.addEventListener("pointerdown", onFlapIntent, { passive: false });
-        canvas.addEventListener("click", onFlapIntent, { passive: false });
-        canvas.addEventListener("touchstart", onFlapIntent, { passive: false });
         window.addEventListener("pointerdown", (e) => {
           // If the user clicks/taps outside the canvas, still allow starting/flapping.
           // Avoid double-trigger when the pointerdown originated on the canvas.
